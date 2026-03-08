@@ -67,9 +67,7 @@ def build_rag_chain(retriever : VectorStoreRetriever):
 
     # init model LLM
     llm = ChatOllama(
-        model=LLM_MODEL, temperature=0.1, 
-        num_ctx=2048, num_predict=512,
-        num_thread=4
+        model=LLM_MODEL, temperature=0.1,
     )
 
     # init PromptTemplate
@@ -92,15 +90,20 @@ def build_rag_chain(retriever : VectorStoreRetriever):
 
     return RAG_CHAIN
 
-def generate_answer(question: str, chat_history: str, retriever : VectorStoreRetriever, chain )->str:
+def generate_answer(
+    question: str,
+    chat_history: str,
+    retriever: VectorStoreRetriever,
+    chain,
+) -> any:
     """
-        predict     
+    Gọi RAG chain và trả về câu trả lời dạng chuỗi (không phải generator).
     """
-
     inputs = {
         "question": question,
-        "chat_history": chat_history if chat_history else "No conversations yet."
+        "chat_history": chat_history if chat_history else "No conversations yet.",
     }
 
-    response = chain.stream(inputs)
+    
+    response = chain.invoke(inputs)
     return response

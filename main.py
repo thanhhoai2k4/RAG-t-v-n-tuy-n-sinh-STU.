@@ -42,15 +42,9 @@ def main() -> None:
         memory.add_user_message(user_input)
         chat_history_str = memory.get_history_string()
 
-        try:
-            answer = generate_answer(user_input, chat_history=chat_history_str, retriever=retriever,chain=chain)
-        except Exception as exc:  # noqa: BLE001
-            # Không để im lặng, luôn trả lời rõ ràng cho người dùng
-            print(f"\n[LOG] Lỗi kỹ thuật khi gọi mô hình: {exc}")
-            answer = (
-                "Hiện tại mình đang gặp lỗi kỹ thuật nên chưa thể truy xuất đầy đủ tài liệu. "
-                "Bạn vui lòng thử lại sau hoặc liên hệ trực tiếp Phòng Đào tạo giúp mình nhé."
-            )
+        
+        answer = generate_answer(user_input, chat_history=chat_history_str, retriever=retriever,chain=chain)
+
         print("\nAI:")
         print(answer)
 
