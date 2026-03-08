@@ -3,12 +3,15 @@ from langchain_ollama import ChatOllama #  local chat
 from langchain_core.prompts import PromptTemplate # template 
 from langchain_core.runnables import RunnablePassthrough
 from langchain_core.output_parsers import StrOutputParser
+from langchain_core.vectorstores.base import VectorStoreRetriever
+from langchain_core.runnables.base import RunnableSerializable
 from src.retriever import get_retriever
 from operator import itemgetter
 import sys
 import os
 
-LLM_MODEL = "deepseek-r1:1.5b" 
+from src.config import LLM_MODEL
+
 
 # ==========================================
 # KHUÔN MẪU PROMPT (Định hình tính cách AI)
@@ -50,21 +53,20 @@ def format_docs(docs: list[Document]):
     return ".".join(formatted_chunks)
 
 
-def get_context(question: str) -> str:
+def get_context(question: str, retriever : VectorStoreRetriever) -> str:
     """
     Trả về chuỗi context đã được format cho một câu hỏi.
     """
-    retriever = get_retriever()
+
     docs = retriever.invoke(question)
     return format_docs(docs)
 
 
-def build_rag_chain():
+def build_rag_chain(retriever : VectorStoreRetriever):
     """Construct a RAG (Retriever-Augmented Generation) pipeline using LCEL"""
-    retriever = get_retriever()
 
     # init model LLM
-    llm = ChatOllama(model=LLM_MODEL, temperature=0.1)
+    llm = ChatOllama(model=LLM_MODEL, temperature=0.1, num_ctx=4096, num_predict=512)
 
     # init PromptTemplate
     prompt = PromptTemplate.from_template(PROMPT_TEMPLATE)
@@ -86,13 +88,11 @@ def build_rag_chain():
 
     return RAG_CHAIN
 
-def generate_answer(question: str, chat_history: str)->str:
+def generate_answer(question: str, chat_history: str, retriever : VectorStoreRetriever, chain )->str:
     """
         predict     
     """
     # print(f"finding document and response for: '{question}'...")
-
-    chain = build_rag_chain()
 
     inputs = {
         "question": question,
@@ -100,19 +100,4 @@ def generate_answer(question: str, chat_history: str)->str:
     }
 
     response = chain.invoke(inputs)
-
     return response
-
-
-
-if __name__ == "__main__":
-    # Test toàn bộ RAG Pipeline
-    test_question = "Điểm xét tuyển chưa cộng điểm ưu tiên được tính như thế nào?"
-    test_history = "Chưa có lịch sử trò chuyện."
-    
-    print("="*50)
-    # Gọi hàm với cả 2 tham số
-    answer = generate_answer(test_question, chat_history=test_history)
-    print("\n=== CÂU TRẢ LỜI CỦA AI ===")
-    print(answer)
-    print("="*50)

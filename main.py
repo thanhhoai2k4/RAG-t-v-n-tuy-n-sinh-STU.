@@ -1,8 +1,14 @@
 from src.generator import generate_answer, get_context, LLM_MODEL
 from src.memory import ChatMemory
+from src.retriever import get_retriever
+from src.generator import build_rag_chain
 
 
 def main() -> None:
+
+    retriever = get_retriever()
+    chain = build_rag_chain(retriever)
+
     """
     Simple CLI chat interface for the STU admissions assistant.
 
@@ -36,26 +42,15 @@ def main() -> None:
         memory.add_user_message(user_input)
         chat_history_str = memory.get_history_string()
 
-        # Trả lời nhanh cho các câu chào hỏi / giới thiệu bản thân
-        normalized = user_input.strip().lower()
-        if normalized in {"bạn là ai", "bạn là ai?", "ban la ai", "ban la ai?"}:
+        try:
+            answer = generate_answer(user_input, chat_history=chat_history_str, retriever=retriever,chain=chain)
+        except Exception as exc:  # noqa: BLE001
+            # Không để im lặng, luôn trả lời rõ ràng cho người dùng
+            print(f"\n[LOG] Lỗi kỹ thuật khi gọi mô hình: {exc}")
             answer = (
-                "Mình là trợ lý tư vấn tuyển sinh và học vụ ảo của Trường Đại học Công nghệ "
-                "Sài Gòn (STU), được xây dựng để hỗ trợ bạn tra cứu thông tin từ tài liệu của trường."
+                "Hiện tại mình đang gặp lỗi kỹ thuật nên chưa thể truy xuất đầy đủ tài liệu. "
+                "Bạn vui lòng thử lại sau hoặc liên hệ trực tiếp Phòng Đào tạo giúp mình nhé."
             )
-        else:
-            try:
-                # Nếu cần xem context để debug, có thể in ra:
-                # context = get_context(user_input)
-                answer = generate_answer(user_input, chat_history=chat_history_str)
-            except Exception as exc:  # noqa: BLE001
-                # Không để im lặng, luôn trả lời rõ ràng cho người dùng
-                print(f"\n[LOG] Lỗi kỹ thuật khi gọi mô hình: {exc}")
-                answer = (
-                    "Hiện tại mình đang gặp lỗi kỹ thuật nên chưa thể truy xuất đầy đủ tài liệu. "
-                    "Bạn vui lòng thử lại sau hoặc liên hệ trực tiếp Phòng Đào tạo giúp mình nhé."
-                )
-
         print("\nAI:")
         print(answer)
 

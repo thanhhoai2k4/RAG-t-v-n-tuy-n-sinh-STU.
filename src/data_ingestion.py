@@ -4,7 +4,7 @@ from langchain_community.document_loaders import PyPDFLoader,DirectoryLoader, Te
 from langchain_text_splitters import RecursiveCharacterTextSplitter # chunk
 from langchain_ollama import OllamaEmbeddings # load local embedings model from ollama 
 from langchain_community.vectorstores import FAISS # Facebook AI similary search
-
+from src.config import model_embeddings
 
 import logging
 logging.getLogger("unstructured").setLevel(logging.ERROR)
@@ -97,7 +97,7 @@ def build_vector_database():
 
     print(RED  + "3.Create Embedings and save to FAISS " + RESET)
     # use ollama model
-    embeddings = OllamaEmbeddings(model="qwen3-embedding:0.6b")
+    embeddings = OllamaEmbeddings(model=model_embeddings)
     # create vector database into your disk
     vector_db = FAISS.from_documents(chunks, embeddings)
     vector_db.save_local(FAISS_PATH)
@@ -108,7 +108,7 @@ def load_and_search_faiss(query: str, k: int = 3):
     print(BLUE + f" loading FAISS and search {k} stament nearst for {query}." + RESET)
 
     # use ollama model
-    embeddings = OllamaEmbeddings(model="qwen3-embedding:0.6b")
+    embeddings = OllamaEmbeddings(model=model_embeddings)
 
     # load FAISS
     vector_db = FAISS.load_local(
