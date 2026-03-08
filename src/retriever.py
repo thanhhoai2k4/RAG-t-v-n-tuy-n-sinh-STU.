@@ -30,7 +30,7 @@ def get_retriever(k: int = 4)->VectorStoreRetriever:
     # 
     retriever = vector_db.as_retriever(
         search_type="similarity",
-        search_kwargs={"k": 7}
+        search_kwargs={"k": k}
     )
     
     return retriever

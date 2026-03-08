@@ -50,7 +50,7 @@ def format_docs(docs: list[Document]):
             page += 1
         chunk_info = f"--- DOCUMENT {i} ---\nSource: {source} (Trang {page})\nContent:\n{content}"
         formatted_chunks.append(chunk_info)
-    return ".".join(formatted_chunks)
+    return "\n\n".join(formatted_chunks)
 
 
 def get_context(question: str, retriever : VectorStoreRetriever) -> str:
@@ -66,7 +66,11 @@ def build_rag_chain(retriever : VectorStoreRetriever):
     """Construct a RAG (Retriever-Augmented Generation) pipeline using LCEL"""
 
     # init model LLM
-    llm = ChatOllama(model=LLM_MODEL, temperature=0.1, num_ctx=4096, num_predict=512)
+    llm = ChatOllama(
+        model=LLM_MODEL, temperature=0.1, 
+        num_ctx=2048, num_predict=512,
+        num_thread=4
+    )
 
     # init PromptTemplate
     prompt = PromptTemplate.from_template(PROMPT_TEMPLATE)
@@ -92,12 +96,11 @@ def generate_answer(question: str, chat_history: str, retriever : VectorStoreRet
     """
         predict     
     """
-    # print(f"finding document and response for: '{question}'...")
 
     inputs = {
         "question": question,
         "chat_history": chat_history if chat_history else "No conversations yet."
     }
 
-    response = chain.invoke(inputs)
+    response = chain.stream(inputs)
     return response
