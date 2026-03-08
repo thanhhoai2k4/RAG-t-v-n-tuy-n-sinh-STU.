@@ -1,0 +1,18 @@
+Trong đó:
+ĐXT=ĐTB lớp 10+ ĐTB lớp 11 + ĐTB lớp 12
+ĐXT =TB10+TB11+TB12
++ ĐXT= Điểm xét tuyển chưa cộng điểm ưu tiên, điểm cộng.
++
++
+ĐTB lớp 10, lớp 11 và lớp 12 lần lượt là Điểm trung bình cả năm lớp 10, lớp 11 và lớp
+12; viết tắt là TB10, TB11, TB12.
+Thang điểm 30
+Nhóm 02: Xét Điểm trung bình 03 năm học THPT (hoặc tương đương) của tổ hợp 03 môn xét tuyền.
+ĐXT =ĐTB môn 01 + ĐTB môn 02+ ĐTB môn 03
+Trong đó:
+ĐXT=ĐTB M01 + ĐTB M02 + ĐTB M03
++ ĐXT= Điểm xét tuyển chưa cộng điểm ưu tiên, điểm cộng.
++ ĐTB môn = Điểm trung bình 03 năm học của môn học trong tổ hợp xét tuyển. Trường
+hợp ĐTB môn không đủ con điểm của 03 năm học thì phải có ĐTB ít nhất của 02 học
+kỳ thuộc Lớp 12 THPT (hoặc tương đương).
++ Thang điểm 30
