@@ -3,7 +3,7 @@ from langchain_ollama import ChatOllama #  local chat
 from langchain_core.prompts import PromptTemplate # template 
 from langchain_core.runnables import RunnablePassthrough
 from langchain_core.output_parsers import StrOutputParser
-from retriever import get_retriever
+from src.retriever import get_retriever
 from operator import itemgetter
 import sys
 import os
@@ -40,7 +40,6 @@ def format_docs(docs: list[Document]):
     """
     formatted_chunks = []
     for i, doc in enumerate(docs):
-        print(doc)
         content = doc.page_content
         source = doc.metadata.get("source", "The documentation is unclear")
         page = doc.metadata.get("page", "unclear")
@@ -49,6 +48,15 @@ def format_docs(docs: list[Document]):
         chunk_info = f"--- DOCUMENT {i} ---\nSource: {source} (Trang {page})\nContent:\n{content}"
         formatted_chunks.append(chunk_info)
     return ".".join(formatted_chunks)
+
+
+def get_context(question: str) -> str:
+    """
+    Trả về chuỗi context đã được format cho một câu hỏi.
+    """
+    retriever = get_retriever()
+    docs = retriever.invoke(question)
+    return format_docs(docs)
 
 
 def build_rag_chain():
@@ -82,7 +90,7 @@ def generate_answer(question: str, chat_history: str)->str:
     """
         predict     
     """
-    print(f"finding document and response for: '{question}'...")
+    # print(f"finding document and response for: '{question}'...")
 
     chain = build_rag_chain()
 
