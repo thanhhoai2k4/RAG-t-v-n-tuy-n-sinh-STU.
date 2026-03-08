@@ -4,6 +4,9 @@ from langchain_core.prompts import PromptTemplate # template
 from langchain_core.runnables import RunnablePassthrough
 from langchain_core.output_parsers import StrOutputParser
 from retriever import get_retriever
+from operator import itemgetter
+import sys
+import os
 
 LLM_MODEL = "deepseek-r1:1.5b" 
 
@@ -17,6 +20,9 @@ QUY TẮC QUAN TRỌNG:
 1. Nếu thông tin để trả lời không có trong tài liệu, hãy thành thật nói rằng bạn chưa có thông tin chính xác và khuyên sinh viên liên hệ trực tiếp Phòng Đào tạo. Tuyệt đối KHÔNG tự bịa ra thông tin.
 2. Trả lời ngắn gọn, súc tích, dễ hiểu. Có thể dùng gạch đầu dòng để làm rõ ý.
 3. Luôn giữ thái độ lịch sự, xưng "mình" hoặc "Thầy/Cô" và gọi người hỏi là "bạn" hoặc "em".
+
+LỊCH SỬ TRÒ CHUYỆN GẦN ĐÂY:
+{chat_history}
 
 TÀI LIỆU THAM KHẢO (Context):
 {context}
@@ -60,7 +66,11 @@ def build_rag_chain():
     # pass throun into PromptTemplate: quesion, context.
 
     RAG_CHAIN = (
-        {"context": retriever | format_docs , "question": RunnablePassthrough()}
+        {
+            "context": itemgetter("question") | retriever | format_docs, 
+            "question": itemgetter("question"),
+            "chat_history": itemgetter("chat_history")
+        }
         | prompt
         | llm
         | StrOutputParser()
@@ -68,21 +78,33 @@ def build_rag_chain():
 
     return RAG_CHAIN
 
-def generate_answer(question: str)->str:
-    """Hàm gọi chuỗi RAG để sinh ra câu trả lời cuối cùng."""
-    print(f"Đang tìm kiếm tài liệu và suy nghĩ câu trả lời cho: '{question}'...")
+def generate_answer(question: str, chat_history: str)->str:
+    """
+        predict     
+    """
+    print(f"finding document and response for: '{question}'...")
+
     chain = build_rag_chain()
-    response = chain.invoke(question)
-    return response    
+
+    inputs = {
+        "question": question,
+        "chat_history": chat_history if chat_history else "No conversations yet."
+    }
+
+    response = chain.invoke(inputs)
+
+    return response
 
 
 
 if __name__ == "__main__":
     # Test toàn bộ RAG Pipeline
     test_question = "Điểm xét tuyển chưa cộng điểm ưu tiên được tính như thế nào?"
+    test_history = "Chưa có lịch sử trò chuyện."
     
     print("="*50)
-    answer = generate_answer(test_question)
+    # Gọi hàm với cả 2 tham số
+    answer = generate_answer(test_question, chat_history=test_history)
     print("\n=== CÂU TRẢ LỜI CỦA AI ===")
     print(answer)
     print("="*50)
