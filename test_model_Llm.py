@@ -1,5 +1,9 @@
-from langchain_ollama import ChatOllama
-from src.config import LLM_MODEL
-llm = ChatOllama(model=LLM_MODEL, temperature=0.1)
-resp = llm.invoke("who are you?")
-print("RAW:", resp) 
+from src.generator import build_rag_chain
+from langchain_core.vectorstores.base import VectorStoreRetriever
+
+
+a = VectorStoreRetriever
+
+
+
+cc = build_rag_chain(a)

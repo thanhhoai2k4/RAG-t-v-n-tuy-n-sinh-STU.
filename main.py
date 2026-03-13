@@ -2,6 +2,11 @@ from src.generator import generate_answer, get_context, LLM_MODEL
 from src.memory import ChatMemory
 from src.retriever import get_retriever
 from src.generator import build_rag_chain
+import os
+from dotenv import load_dotenv
+
+
+load_dotenv()
 
 
 def main() -> None:
@@ -20,14 +25,8 @@ def main() -> None:
     print("=" * 60)
 
 
-    
-    try:
-        retriever = get_retriever()
-        chain = build_rag_chain(retriever)
-        print("Thực hiện load thành công retriever và chain LLM")
-    except:
-        print("Không thể load thành công retriever và chain LLM")
-
+    retriever = get_retriever()
+    chain = build_rag_chain(retriever)
     
 
     memory = ChatMemory(max_history=4)
@@ -50,21 +49,6 @@ def main() -> None:
         memory.add_user_message(user_input)
         chat_history_str = memory.get_history_string()
 
-        # region agent log
-        import json as _json, time as _time
-        with open("debug-4fc04b.log", "a", encoding="utf-8") as _f:
-            _f.write(_json.dumps({
-                "sessionId": "4fc04b",
-                "runId": "pre-fix",
-                "hypothesisId": "H3",
-                "location": "main.py:before_generate_answer",
-                "message": "Before generate_answer call",
-                "data": {
-                    "user_input": user_input,
-                },
-                "timestamp": int(_time.time() * 1000),
-            }) + "\n")
-        # endregion
 
         answer = generate_answer(
             user_input,

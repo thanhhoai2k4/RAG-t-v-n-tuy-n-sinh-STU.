@@ -1,11 +1,11 @@
 import os # sys
 import unstructured_pytesseract
-from langchain_community.document_loaders import PyPDFLoader,DirectoryLoader, TextLoader, PyPDFDirectoryLoader, UnstructuredPDFLoader # load data 
+from langchain_community.document_loaders import PyPDFLoader,DirectoryLoader, TextLoader, PyPDFDirectoryLoader, UnstructuredPDFLoader,PyMuPDFLoader # load data 
 from langchain_text_splitters import RecursiveCharacterTextSplitter # chunk
 from langchain_ollama import OllamaEmbeddings # load local embedings model from ollama 
 from langchain_community.vectorstores import FAISS # Facebook AI similary search
 from src.config import model_embeddings
-
+from src.config import FAISS_PATH
 import logging
 logging.getLogger("unstructured").setLevel(logging.ERROR)
 
@@ -19,7 +19,6 @@ RESET = "\033[0m"
 DATA_DIR_TXT = "data/processed" # path into processed data
 DATA_DIR_PDF_IMAGE = "data/pdf_images" # path into PDF data raw
 DATA_DIR_PDF_TEXT = "data/pdf_text" # path into text PDF
-FAISS_PATH = "vector_db/faiss_index" # path into vector database
 
 unstructured_pytesseract.pytesseract.tesseract_cmd = r'C:\Program Files\Tesseract-OCR\tesseract.exe'
 os.environ["OCR_AGENT"] = "unstructured.partition.utils.ocr_models.tesseract_ocr.OCRAgentTesseract"
@@ -32,7 +31,10 @@ def build_vector_database():
     # load all file txt.
     if os.path.exists(DATA_DIR_TXT):
         # load all data txt in DATA_DIR_TXT. by for element in DATA_DIR_TXT: Textloader(element)
-        txt_loader = DirectoryLoader(path=DATA_DIR_TXT, glob="*.txt", loader_cls=lambda p: TextLoader(p, encoding="utf-8"))
+        txt_loader = DirectoryLoader(
+            path=DATA_DIR_TXT, 
+            glob="*.txt", 
+            loader_cls=lambda p: TextLoader(p, encoding="utf-8"))
         txt_docs = txt_loader.load() # Replacement: txt_loader.lazy_load()
         documents.extend(txt_docs)
         print(f"\t-loaded {len(txt_docs)} file txt.")
@@ -45,7 +47,7 @@ def build_vector_database():
         textpdf_loader = DirectoryLoader(
             path=DATA_DIR_PDF_TEXT,
             glob="*.pdf",
-            loader_cls=PyPDFLoader
+            loader_cls=PyMuPDFLoader
         )
         textpdf_docs = textpdf_loader.load()
         documents.extend(textpdf_docs)
@@ -86,8 +88,8 @@ def build_vector_database():
 
     print(RED + "2. Chunking the text" + RESET)
     text_splitter = RecursiveCharacterTextSplitter(
-        chunk_size=800,
-        chunk_overlap=250, 
+        chunk_size=500,
+        chunk_overlap=50, 
         separators=["\n\n", "\n", ".", " ", ""]
     )
 

@@ -1,0 +1,15 @@
+Phương trình bật 1 là phương trình có dạng:
+-   ax + b = 0
+
+trong đó:
+    x: là ẩn số cần tìm để phương trình bằng 0.
+    b: hệ số tự do. thương gọi là bias.
+    a: hệ số của ấn x.
+
+
+Phương trình bật nhất có nghiệm khi:
+Tồn tại tại 1 nghiệm X làm cho phương trình này bằng 0
+Từ đó suy ra nghiệm của phương trình này la:
+    x = -b /a
+
+Với điều kiện: a != 0.

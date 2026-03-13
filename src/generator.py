@@ -8,26 +8,22 @@ from langchain_core.vectorstores.base import VectorStoreRetriever
 from langchain_core.runnables.base import RunnableSerializable
 from src.retriever import get_retriever
 from operator import itemgetter
-import sys
-import os
-import json
-import time
 from concurrent.futures import ThreadPoolExecutor, TimeoutError as _TimeoutError
 
 from src.config import LLM_MODEL
-
+from langchain_core.runnables import RunnableLambda
 
 # ==========================================
 # KHUÔN MẪU PROMPT (Định hình tính cách AI)
 # ==========================================
-SYSTEM_PROMPT = """Bạn là một chuyên viên tư vấn tuyển sinh và học vụ thân thiện, nhiệt tình của Trường Đại học Công nghệ Sài Gòn (STU).
+SYSTEM_PROMPT = """Bạn là một Giáo viên và Hướng dẩn, nhiệt tình của môn toán học.
 Nhiệm vụ của bạn là trả lời câu hỏi của sinh viên một cách chính xác, DỰA HOÀN TOÀN VÀO các tài liệu được cung cấp bên dưới.
 
 QUY TẮC QUAN TRỌNG:
 1. Nếu thông tin để trả lời không có trong tài liệu, hãy thành thật nói rằng bạn chưa có thông tin chính xác và khuyên sinh viên liên hệ trực tiếp Phòng Đào tạo. 
-2. Ngoại lệ: Nếu sinh viên chào hỏi hoặc hỏi "bạn là ai", hãy lịch sự giới thiệu bạn là trợ lý tư vấn tuyển sinh ảo của STU.
-3. Trả lời ngắn gọn, súc tích, dễ hiểu. Có thể dùng gạch đầu dòng để làm rõ ý.
-4. Luôn giữ thái độ lịch sự, xưng "mình" hoặc "Thầy/Cô" và gọi người hỏi là "bạn" hoặc "em".
+2. Trả lời ngắn gọn, súc tích, dễ hiểu. Có thể dùng gạch đầu dòng để làm rõ ý.
+3. Luôn giữ thái độ lịch sự, xưng "mình" hoặc "Thầy/Cô" và gọi người hỏi là "bạn" hoặc "em".
+4. Luốn show công thức ra để người dùng hình dung được công thức của toán học
 """
 
 HUMAN_PROMPT = """LỊCH SỬ TRÒ CHUYỆN GẦN ĐÂY:
@@ -72,8 +68,16 @@ def build_rag_chain(retriever : VectorStoreRetriever):
 
     # init model LLM
     llm = ChatOllama(
-        model=LLM_MODEL, temperature=0.1,
+        model=LLM_MODEL, temperature=0.1, verbose=True  
     )
+
+    # test LLM
+    # resp = llm.stream("who are you?")
+    # for i in resp:
+    #     print(i, end=" ", flush=True)
+    # return
+    # test LLM
+
 
     # init PromptTemplate
     prompt = ChatPromptTemplate.from_messages([
@@ -87,7 +91,7 @@ def build_rag_chain(retriever : VectorStoreRetriever):
 
     RAG_CHAIN = (
         {
-            "context": itemgetter("question") | retriever | format_docs, 
+            "context": itemgetter("question") | retriever  | format_docs, 
             "question": itemgetter("question"),
             "chat_history": itemgetter("chat_history")
         }
@@ -95,6 +99,41 @@ def build_rag_chain(retriever : VectorStoreRetriever):
         | llm
         | StrOutputParser()
     )
+
+    # test for none retriver 
+    # empty_retriever = RunnableLambda(lambda _question: [])  # trả về list docs rỗng
+    # RAG_CHAIN = (
+    #     {
+    #         "context": itemgetter("question") | empty_retriever  | format_docs, 
+    #         "question": itemgetter("question"),
+    #         "chat_history": itemgetter("chat_history")
+    #     }
+    #     | prompt
+    #     | llm
+    #     | StrOutputParser()
+    # )
+
+
+    # test with docuement
+    # DOC_TEXT = """--- DOCUMENT 0 ---
+    #     Source: TEST_DOC (Trang 1)
+    #     Content:
+    #     Trường STU có mã bí mật để kiểm tra là: STU-VERIFY-7391.
+    #     Học phí ngành X trong ví dụ này là 12.345.000 VNĐ/học kỳ.
+    # """
+
+    # static_context = RunnableLambda(lambda _question: DOC_TEXT)
+
+    # RAG_CHAIN = (
+    #     {
+    #         "context": itemgetter("question") | static_context,
+    #         "question": itemgetter("question"),
+    #         "chat_history": itemgetter("chat_history"),
+    #     }
+    #     | prompt
+    #     | llm
+    #     | StrOutputParser()
+    # )
 
     return RAG_CHAIN
 
@@ -112,3 +151,4 @@ def generate_answer(
 
 
     return chain.invoke(inputs)
+
